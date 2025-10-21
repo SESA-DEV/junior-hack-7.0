@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import AlertDialog from './AlertDialog';
 
 interface RegistrationModalProps {
   isOpen: boolean;
@@ -9,9 +10,21 @@ interface RegistrationModalProps {
 
 export default function RegistrationModal({ isOpen, onClose }: RegistrationModalProps) {
   const [currentStep, setCurrentStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [alertDialog, setAlertDialog] = useState<{
+    isOpen: boolean;
+    type: 'success' | 'error';
+    title: string;
+    message: string;
+  }>({
+    isOpen: false,
+    type: 'success',
+    title: '',
+    message: '',
+  });
   const [formData, setFormData] = useState({
     teamName: '',
-    membersCount: '2',
+    membersCount: '4',
     leader: {
       name: '',
       studentNo: '',
@@ -42,7 +55,9 @@ export default function RegistrationModal({ isOpen, onClose }: RegistrationModal
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const totalSteps = parseInt(formData.membersCount) + 2; // Team info + leader + members + agreement
+  // Team info (1) + leader (1) + additional members (2 or 3) + agreement (1) = 5 or 6 steps
+  // membersCount includes leader, so subtract 1 for additional member forms
+  const totalSteps = 1 + 1 + (parseInt(formData.membersCount) - 1) + 1;
 
   // Validation function for individual fields
   const validateField = (name: string, value: string): string => {
@@ -56,12 +71,16 @@ export default function RegistrationModal({ isOpen, onClose }: RegistrationModal
     
     if (name.endsWith('.studentNo')) {
       if (value.trim() === '') return 'Student number is required';
-      if (!/^[A-Za-z0-9]+$/.test(value)) return 'Invalid student number format';
+      // Format: SE/2022/032 or SE/2023/032
+      // Two letters / (2022 or 2023) / three digits
+      if (!/^[A-Z]{2}\/(2022|2023)\/\d{3}$/i.test(value)) {
+        return 'Format: XX/2022/XXX or XX/2023/XXX (e.g., SE/2022/032)';
+      }
     }
     
     if (name.endsWith('.contactNo')) {
       if (value.trim() === '') return 'Contact number is required';
-      if (!/^\d{10}$/.test(value.replace(/\s/g, ''))) return 'Contact number must be 10 digits';
+      if (!/^\d{10}$/.test(value.replace(/\s/g, ''))) return 'Contact number must be 10 digits (e.g., 0771234567)';
     }
     
     if (name.endsWith('.email')) {
@@ -72,13 +91,66 @@ export default function RegistrationModal({ isOpen, onClose }: RegistrationModal
     return '';
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission here
-    console.log('Form submitted:', formData);
-    // You can add API call here
-    onClose();
-    setCurrentStep(1); // Reset to step 1
+    
+    setIsSubmitting(true);
+    
+    try {
+      const response = await fetch('/api/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          teamName: formData.teamName,
+          membersCount: formData.membersCount,
+          leader: formData.leader,
+          member1: parseInt(formData.membersCount) > 1 ? formData.member1 : null,
+          member2: parseInt(formData.membersCount) > 2 ? formData.member2 : null,
+          member3: parseInt(formData.membersCount) > 3 ? formData.member3 : null,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to register team');
+      }
+
+      // Success!
+      setAlertDialog({
+        isOpen: true,
+        type: 'success',
+        title: 'Registration Successful!',
+        message: `Team "${formData.teamName}" has been registered successfully for JuniorHack 7.0! Check your email for further details.`,
+      });
+
+      // Reset form after showing success
+      setTimeout(() => {
+        setFormData({
+          teamName: '',
+          membersCount: '4',
+          leader: { name: '', studentNo: '', contactNo: '', email: '' },
+          member1: { name: '', studentNo: '', contactNo: '', email: '' },
+          member2: { name: '', studentNo: '', contactNo: '', email: '' },
+          member3: { name: '', studentNo: '', contactNo: '', email: '' },
+          agreement: false,
+        });
+        setTouched({});
+        setErrors({});
+        setCurrentStep(1);
+      }, 500);
+    } catch (error) {
+      setAlertDialog({
+        isOpen: true,
+        type: 'error',
+        title: 'Registration Failed',
+        message: error instanceof Error ? error.message : 'Failed to register team. Please try again.',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -121,6 +193,42 @@ export default function RegistrationModal({ isOpen, onClose }: RegistrationModal
     // Validate field on blur
     const error = validateField(name, value);
     setErrors({ ...errors, [name]: error });
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      
+      const target = e.target as HTMLInputElement;
+      const { name, value } = target;
+      
+      // Validate current field
+      const error = validateField(name, value);
+      
+      if (error) {
+        // If there's an error, mark as touched and show error
+        setTouched({ ...touched, [name]: true });
+        setErrors({ ...errors, [name]: error });
+        return;
+      }
+      
+      // Find all input elements in the form
+      const form = target.form;
+      if (form) {
+        const inputs = Array.from(form.querySelectorAll('input:not([type="radio"]):not([type="checkbox"])')) as HTMLInputElement[];
+        const currentIndex = inputs.indexOf(target);
+        
+        // Move to next input
+        if (currentIndex < inputs.length - 1) {
+          inputs[currentIndex + 1].focus();
+        } else if (currentIndex === inputs.length - 1) {
+          // If it's the last input, check if current step is valid before moving
+          if (isCurrentStepValid() && currentStep < totalSteps) {
+            nextStep();
+          }
+        }
+      }
+    }
   };
 
   const nextStep = () => {
@@ -173,14 +281,11 @@ export default function RegistrationModal({ isOpen, onClose }: RegistrationModal
 
     // Steps 3-5: Member Info
     const memberIndex = currentStep - 2;
-    if (memberIndex >= 1 && memberIndex <= 3) {
+    const additionalMembers = parseInt(formData.membersCount) - 1; // Subtract leader
+    
+    if (memberIndex >= 1 && memberIndex <= additionalMembers) {
       const memberKey = `member${memberIndex}` as 'member1' | 'member2' | 'member3';
       const member = formData[memberKey];
-      const isRequired = memberIndex <= parseInt(formData.membersCount) - 1;
-
-      if (!isRequired) {
-        return true; // Skip validation if member is not required
-      }
 
       return (
         member.name.trim() !== '' &&
@@ -224,6 +329,7 @@ export default function RegistrationModal({ isOpen, onClose }: RegistrationModal
               value={formData.teamName}
               onChange={handleChange}
               onBlur={handleBlur}
+              onKeyDown={handleKeyDown}
               className={touched.teamName && errors.teamName ? 'error' : ''}
             />
             <label htmlFor="teamName" className="form-label" data-text="TEAM_NAME">
@@ -286,6 +392,7 @@ export default function RegistrationModal({ isOpen, onClose }: RegistrationModal
               value={formData.leader.name}
               onChange={handleChange}
               onBlur={handleBlur}
+              onKeyDown={handleKeyDown}
               className={touched['leader.name'] && errors['leader.name'] ? 'error' : ''}
             />
             <label htmlFor="leader.name" className="form-label" data-text="LEADER_NAME">
@@ -304,6 +411,7 @@ export default function RegistrationModal({ isOpen, onClose }: RegistrationModal
               value={formData.leader.studentNo}
               onChange={handleChange}
               onBlur={handleBlur}
+              onKeyDown={handleKeyDown}
               className={touched['leader.studentNo'] && errors['leader.studentNo'] ? 'error' : ''}
             />
             <label htmlFor="leader.studentNo" className="form-label" data-text="STUDENT_NO">
@@ -314,7 +422,7 @@ export default function RegistrationModal({ isOpen, onClose }: RegistrationModal
 
           <div className="form-group">
             <input
-              type="tel"
+              type="number"
               id="leader.contactNo"
               name="leader.contactNo"
               required
@@ -322,6 +430,8 @@ export default function RegistrationModal({ isOpen, onClose }: RegistrationModal
               value={formData.leader.contactNo}
               onChange={handleChange}
               onBlur={handleBlur}
+              onKeyDown={handleKeyDown}
+              maxLength={10}
               className={touched['leader.contactNo'] && errors['leader.contactNo'] ? 'error' : ''}
             />
             <label htmlFor="leader.contactNo" className="form-label" data-text="CONTACT_NO">
@@ -340,6 +450,7 @@ export default function RegistrationModal({ isOpen, onClose }: RegistrationModal
               value={formData.leader.email}
               onChange={handleChange}
               onBlur={handleBlur}
+              onKeyDown={handleKeyDown}
               className={touched['leader.email'] && errors['leader.email'] ? 'error' : ''}
             />
             <label htmlFor="leader.email" className="form-label" data-text="EMAIL">
@@ -353,16 +464,12 @@ export default function RegistrationModal({ isOpen, onClose }: RegistrationModal
 
     // Steps 3-5: Member Info
     const memberIndex = currentStep - 2;
-    if (memberIndex >= 1 && memberIndex <= 3) {
+    const additionalMembers = parseInt(formData.membersCount) - 1; // Subtract leader
+    
+    // Check if this step is for a member form (not the final terms step)
+    if (memberIndex >= 1 && memberIndex <= additionalMembers) {
       const memberKey = `member${memberIndex}` as 'member1' | 'member2' | 'member3';
       const member = formData[memberKey];
-      const isRequired = memberIndex <= parseInt(formData.membersCount) - 1;
-
-      if (!isRequired) {
-        // Skip to next step if this member is not needed
-        setTimeout(() => nextStep(), 0);
-        return null;
-      }
 
       return (
         <div className="form-grid  mt-10">
@@ -371,11 +478,12 @@ export default function RegistrationModal({ isOpen, onClose }: RegistrationModal
               type="text"
               id={`${memberKey}.name`}
               name={`${memberKey}.name`}
-              required={isRequired}
+              required
               placeholder=""
               value={member.name}
               onChange={handleChange}
               onBlur={handleBlur}
+              onKeyDown={handleKeyDown}
               className={touched[`${memberKey}.name`] && errors[`${memberKey}.name`] ? 'error' : ''}
             />
             <label htmlFor={`${memberKey}.name`} className="form-label" data-text={`MEMBER_${String(memberIndex).padStart(2, '0')}_NAME`}>
@@ -389,11 +497,12 @@ export default function RegistrationModal({ isOpen, onClose }: RegistrationModal
               type="text"
               id={`${memberKey}.studentNo`}
               name={`${memberKey}.studentNo`}
-              required={isRequired}
+              required
               placeholder=""
               value={member.studentNo}
               onChange={handleChange}
               onBlur={handleBlur}
+              onKeyDown={handleKeyDown}
               className={touched[`${memberKey}.studentNo`] && errors[`${memberKey}.studentNo`] ? 'error' : ''}
             />
             <label htmlFor={`${memberKey}.studentNo`} className="form-label" data-text="STUDENT_NO">
@@ -404,14 +513,16 @@ export default function RegistrationModal({ isOpen, onClose }: RegistrationModal
 
           <div className="form-group">
             <input
-              type="tel"
+              type="number"
               id={`${memberKey}.contactNo`}
               name={`${memberKey}.contactNo`}
-              required={isRequired}
+              required
               placeholder=""
               value={member.contactNo}
               onChange={handleChange}
               onBlur={handleBlur}
+              onKeyDown={handleKeyDown}
+              maxLength={10}
               className={touched[`${memberKey}.contactNo`] && errors[`${memberKey}.contactNo`] ? 'error' : ''}
             />
             <label htmlFor={`${memberKey}.contactNo`} className="form-label" data-text="CONTACT_NO">
@@ -425,11 +536,12 @@ export default function RegistrationModal({ isOpen, onClose }: RegistrationModal
               type="email"
               id={`${memberKey}.email`}
               name={`${memberKey}.email`}
-              required={isRequired}
+              required
               placeholder=""
               value={member.email}
               onChange={handleChange}
               onBlur={handleBlur}
+              onKeyDown={handleKeyDown}
               className={touched[`${memberKey}.email`] && errors[`${memberKey}.email`] ? 'error' : ''}
             />
             <label htmlFor={`${memberKey}.email`} className="form-label" data-text="EMAIL">
@@ -508,7 +620,21 @@ export default function RegistrationModal({ isOpen, onClose }: RegistrationModal
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" onClick={handleClose}>
+    <>
+      <AlertDialog
+        isOpen={alertDialog.isOpen}
+        type={alertDialog.type}
+        title={alertDialog.title}
+        message={alertDialog.message}
+        onClose={() => {
+          setAlertDialog({ ...alertDialog, isOpen: false });
+          if (alertDialog.type === 'success') {
+            onClose();
+          }
+        }}
+      />
+
+      <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
       <div className="glitch-form-wrapper" onClick={(e) => e.stopPropagation()}>
         <form className="glitch-card" onSubmit={handleSubmit}>
           <div className="card-header">
@@ -597,10 +723,10 @@ export default function RegistrationModal({ isOpen, onClose }: RegistrationModal
                 <button 
                   type="submit" 
                   className="submit-btn" 
-                  data-text="SUBMIT"
-                  disabled={!formData.agreement}
+                  data-text={isSubmitting ? "SUBMITTING..." : "SUBMIT"}
+                  disabled={!formData.agreement || isSubmitting}
                 >
-                  <span className="btn-text">SUBMIT</span>
+                  <span className="btn-text">{isSubmitting ? "SUBMITTING..." : "SUBMIT"}</span>
                 </button>
               )}
             </div>
@@ -608,5 +734,6 @@ export default function RegistrationModal({ isOpen, onClose }: RegistrationModal
         </form>
       </div>
     </div>
+    </>
   );
 }
