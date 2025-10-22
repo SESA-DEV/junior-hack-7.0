@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { appendToGoogleSheet } from '@/lib/googleSheets';
+import { sendRegistrationEmail } from '@/lib/email';
 
 export async function POST(request: NextRequest) {
   try {
@@ -178,6 +179,19 @@ export async function POST(request: NextRequest) {
     } catch (sheetError) {
       // Log error but don't fail the registration
       console.error('Failed to save to Google Sheets:', sheetError);
+    }
+
+    // Send confirmation email
+    try {
+      await sendRegistrationEmail({
+        teamName,
+        membersCount: memberCount,
+        leader,
+        members,
+      });
+    } catch (emailError) {
+      // Log error but don't fail the registration
+      console.error('Failed to send confirmation email:', emailError);
     }
 
     return NextResponse.json(

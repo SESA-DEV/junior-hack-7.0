@@ -1,0 +1,10 @@
+# robots.txt for Junior Hack 7.0
+
+User-agent: *
+Allow: /
+
+# Disallow API routes from being crawled
+Disallow: /api/
+
+# Sitemap
+Sitemap: https://junior-hack.sesa.lk/sitemap.xml

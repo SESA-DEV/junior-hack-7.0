@@ -14,6 +14,9 @@
     "framer-motion": "^12.23.24",
     "googleapis": "^164.1.0",
     "next": "15.5.6",
+    "nodemailer": "^7.0.9",
+    "posthog-js": "^1.279.3",
+    "posthog-node": "^5.10.3",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "tailwind-merge": "^3.3.1"
@@ -22,6 +25,7 @@
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
+    "@types/nodemailer": "^7.0.2",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",

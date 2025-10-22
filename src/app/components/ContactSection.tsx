@@ -11,7 +11,7 @@ export default function ContactSection() {
       phone: "+94 76 311 7229",
       email: "imansha.idr@gmail.com",
       linkedin: "https://www.linkedin.com/in/imansha-dilshan-6768662a0",
-      linkedinImage: "https://media.licdn.com/dms/image/v2/D4D35AQEr2TLHrl41Hw/profile-framedphoto-shrink_200_200/B4DZgmaF3NGkAw-/0/1752991031083?e=1761674400&v=beta&t=1ztHcPpGh-jB_A7xZOHc1KBBBTgJyadYaR79Q3LIHXA"
+      linkedinImage: "https://media.licdn.com/dms/image/v2/D4D03AQGIChPh3cm5vw/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1731665279445?e=1762992000&v=beta&t=NrvuiPHoht1sFDL525QvVKoZDdGmkuZNMkOHmDUpkFQ"
     },
     {
       name: "Mihiran Weerasekara",
