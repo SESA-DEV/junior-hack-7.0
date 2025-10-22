@@ -87,10 +87,10 @@ export default function OrganizersSection() {
   ];
 
   return (
-    <section className="py-20 px-6 bg-gradient-to-b from-black via-[#0a0a0a] to-black relative overflow-hidden">
+    <section className="py-12 sm:py-16 md:py-20 px-4 sm:px-6 bg-gradient-to-b from-black via-[#0a0a0a] to-black relative overflow-hidden">
       {/* Background decorations */}
-      <div className="absolute top-20 left-10 w-96 h-96 bg-[#63f8fc]/5 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-20 right-10 w-96 h-96 bg-[#63f8fc]/5 rounded-full blur-3xl"></div>
+      <div className="absolute top-20 left-10 w-48 h-48 sm:w-96 sm:h-96 bg-[#63f8fc]/5 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-20 right-10 w-48 h-48 sm:w-96 sm:h-96 bg-[#63f8fc]/5 rounded-full blur-3xl"></div>
       
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Section Header */}
@@ -99,10 +99,10 @@ export default function OrganizersSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="text-center mb-16"
+          className="text-center mb-12 sm:mb-14 md:mb-16"
         >
           <div className="inline-block">
-            <h2 className="font-audiowide text-4xl md:text-5xl font-bold mb-4">
+            <h2 className="font-audiowide text-3xl sm:text-4xl md:text-5xl font-bold mb-4">
               <span className="gradient-text">🤝 Organized By</span>
             </h2>
             <div className="h-1 bg-gradient-to-r from-transparent via-[#63f8fc] to-transparent rounded-full"></div>
@@ -112,14 +112,14 @@ export default function OrganizersSection() {
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="mt-4 text-gray-400 font-inter"
+            className="mt-4 text-sm sm:text-base text-gray-400 font-inter px-4"
           >
             In collaboration with leading student organizations
           </motion.p>
         </motion.div>
 
         {/* Organizers Cards */}
-        <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 max-w-5xl mx-auto">
           {organizers.map((org, index) => (
             <motion.div
               key={index}
@@ -128,11 +128,11 @@ export default function OrganizersSection() {
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: index * 0.2 }}
               whileHover={{ scale: 1.03, y: -10 }}
-              className="group relative bg-gradient-to-br from-black via-gray-900 to-black border border-[#63f8fc]/30 rounded-2xl p-8 overflow-hidden shadow-xl hover:shadow-2xl hover:shadow-[#63f8fc]/20 transition-all duration-300"
+              className="group relative bg-gradient-to-br from-black via-gray-900 to-black border border-[#63f8fc]/30 rounded-xl sm:rounded-2xl p-6 sm:p-8 overflow-hidden shadow-xl hover:shadow-2xl hover:shadow-[#63f8fc]/20 transition-all duration-300"
             >
               {/* Glowing corner effects */}
-              <div className="absolute top-0 right-0 w-32 h-32 bg-[#63f8fc]/10 rounded-full blur-2xl group-hover:bg-[#63f8fc]/20 transition-all duration-300"></div>
-              <div className="absolute bottom-0 left-0 w-32 h-32 bg-[#63f8fc]/5 rounded-full blur-2xl group-hover:bg-[#63f8fc]/15 transition-all duration-300"></div>
+              <div className="absolute top-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-[#63f8fc]/10 rounded-full blur-2xl group-hover:bg-[#63f8fc]/20 transition-all duration-300"></div>
+              <div className="absolute bottom-0 left-0 w-24 h-24 sm:w-32 sm:h-32 bg-[#63f8fc]/5 rounded-full blur-2xl group-hover:bg-[#63f8fc]/15 transition-all duration-300"></div>
               
               {/* Content */}
               <div className="relative z-10">
@@ -140,7 +140,7 @@ export default function OrganizersSection() {
                 <motion.div
                   whileHover={{ scale: 1.1 }}
                   transition={{ duration: 0.3 }}
-                  className={index==0?"w-24 h-32 mx-auto mb-6 relative":"w-50 h-32 mx-auto mb-6 relative"}
+                  className={index==0?"w-20 h-28 sm:w-24 sm:h-32 mx-auto mb-4 sm:mb-6 relative":"w-40 h-28 sm:w-50 sm:h-32 mx-auto mb-4 sm:mb-6 relative"}
                 >
                   <Image
                     src={org.logoPath}
@@ -152,18 +152,18 @@ export default function OrganizersSection() {
                 </motion.div>
 
                 {/* Name */}
-                <h3 className="font-audiowide text-3xl font-bold text-white text-center mb-2 group-hover:text-[#63f8fc] transition-colors duration-300">
+                <h3 className="font-audiowide text-2xl sm:text-3xl font-bold text-white text-center mb-2 group-hover:text-[#63f8fc] transition-colors duration-300">
                   {org.name}
                 </h3>
-                <p className="text-[#63f8fc] font-inter text-sm text-center mb-3">
+                <p className="text-[#63f8fc] font-inter text-xs sm:text-sm text-center mb-2 sm:mb-3">
                   {org.fullName}
                 </p>
-                <p className="text-gray-400 font-inter text-sm text-center mb-6">
+                <p className="text-gray-400 font-inter text-xs sm:text-sm text-center mb-4 sm:mb-6">
                   {org.description}
                 </p>
 
                 {/* Social Media Links */}
-                <div className="flex justify-center items-center gap-3 flex-wrap">
+                <div className="flex justify-center items-center gap-2 sm:gap-3 flex-wrap">
                   {org.socials.map((social, idx) => (
                     <motion.a
                       key={idx}
@@ -174,7 +174,7 @@ export default function OrganizersSection() {
                       whileTap={{ scale: 0.95 }}
                       className="group/social relative"
                     >
-                      <div className="w-12 h-12 rounded-lg flex items-center justify-center text-[#63f8fc] hover:text-white transition-all duration-300">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center text-[#63f8fc] hover:text-white transition-all duration-300">
                         {social.icon}
                       </div>
                       {/* Tooltip */}
@@ -199,15 +199,15 @@ export default function OrganizersSection() {
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.6 }}
-          className="mt-12 text-center"
+          className="mt-8 sm:mt-10 md:mt-12 text-center px-4"
         >
-          <div className="inline-block bg-gradient-to-r from-[#63f8fc]/10 via-[#63f8fc]/20 to-[#63f8fc]/10 border border-[#63f8fc]/30 rounded-2xl px-8 py-4">
+          <div className="inline-block bg-gradient-to-r from-[#63f8fc]/10 via-[#63f8fc]/20 to-[#63f8fc]/10 border border-[#63f8fc]/30 rounded-xl sm:rounded-2xl px-4 sm:px-6 md:px-8 py-3 sm:py-4">
             <motion.p
               animate={{
                 scale: [1, 1.05, 1],
               }}
               transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-              className="font-audiowide text-[#63f8fc] text-sm tracking-wider"
+              className="font-audiowide text-[#63f8fc] text-xs sm:text-sm tracking-wider"
             >
               A Collaborative Initiative for Tech Innovation
             </motion.p>

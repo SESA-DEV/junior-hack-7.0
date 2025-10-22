@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import AlertDialog from './AlertDialog';
 
 interface RegistrationModalProps {
@@ -11,6 +12,7 @@ interface RegistrationModalProps {
 export default function RegistrationModal({ isOpen, onClose }: RegistrationModalProps) {
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showContent, setShowContent] = useState(false);
   const [alertDialog, setAlertDialog] = useState<{
     isOpen: boolean;
     type: 'success' | 'error';
@@ -22,6 +24,19 @@ export default function RegistrationModal({ isOpen, onClose }: RegistrationModal
     title: '',
     message: '',
   });
+
+  // Trigger content animation after header appears
+  useEffect(() => {
+    if (isOpen) {
+      setShowContent(false);
+      const timer = setTimeout(() => {
+        setShowContent(true);
+      }, 300); // Delay content appearance
+      return () => clearTimeout(timer);
+    } else {
+      setShowContent(false);
+    }
+  }, [isOpen]);
   const [formData, setFormData] = useState({
     teamName: '',
     membersCount: '4',
@@ -244,21 +259,24 @@ export default function RegistrationModal({ isOpen, onClose }: RegistrationModal
   };
 
   const handleClose = () => {
-    onClose();
+    setShowContent(false);
     setTimeout(() => {
-      setCurrentStep(1);
-      setFormData({
-        teamName: '',
-        membersCount: '4',
-        leader: { name: '', studentNo: '', contactNo: '', email: '' },
-        member1: { name: '', studentNo: '', contactNo: '', email: '' },
-        member2: { name: '', studentNo: '', contactNo: '', email: '' },
-        member3: { name: '', studentNo: '', contactNo: '', email: '' },
-        agreement: false,
-      });
-      setTouched({});
-      setErrors({});
-    }, 300);
+      onClose();
+      setTimeout(() => {
+        setCurrentStep(1);
+        setFormData({
+          teamName: '',
+          membersCount: '4',
+          leader: { name: '', studentNo: '', contactNo: '', email: '' },
+          member1: { name: '', studentNo: '', contactNo: '', email: '' },
+          member2: { name: '', studentNo: '', contactNo: '', email: '' },
+          member3: { name: '', studentNo: '', contactNo: '', email: '' },
+          agreement: false,
+        });
+        setTouched({});
+        setErrors({});
+      }, 300);
+    }, 200);
   };
 
   // Validation function to check if current step is complete
@@ -304,7 +322,70 @@ export default function RegistrationModal({ isOpen, onClose }: RegistrationModal
     return false;
   };
 
-  if (!isOpen) return null;
+  // Animation variants
+  const backdropVariants = {
+    hidden: { opacity: 0 },
+    visible: { 
+      opacity: 1,
+      transition: { duration: 0.3 }
+    },
+    exit: { 
+      opacity: 0,
+      transition: { duration: 0.2 }
+    }
+  };
+
+  const headerVariants = {
+    hidden: { 
+      opacity: 0,
+      scale: 0.8,
+      y: -20
+    },
+    visible: { 
+      opacity: 1,
+      scale: 1,
+      y: 0,
+      transition: {
+        duration: 0.4,
+        ease: [0.43, 0.13, 0.23, 0.96] as [number, number, number, number]
+      }
+    },
+    exit: {
+      opacity: 0,
+      scale: 0.8,
+      y: -20,
+      transition: { duration: 0.2 }
+    }
+  };
+
+  const contentVariants = {
+    hidden: { 
+      height: 0,
+      opacity: 0
+    },
+    visible: { 
+      height: 'auto',
+      opacity: 1,
+      transition: {
+        height: {
+          duration: 0.4,
+          ease: [0.43, 0.13, 0.23, 0.96] as [number, number, number, number]
+        },
+        opacity: {
+          duration: 0.3,
+          delay: 0.1
+        }
+      }
+    },
+    exit: {
+      height: 0,
+      opacity: 0,
+      transition: {
+        height: { duration: 0.3 },
+        opacity: { duration: 0.2 }
+      }
+    }
+  };
 
   // Helper function to render error message
   const renderError = (fieldName: string) => {
@@ -634,106 +715,132 @@ export default function RegistrationModal({ isOpen, onClose }: RegistrationModal
         }}
       />
 
-      <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-      <div className="glitch-form-wrapper" onClick={(e) => e.stopPropagation()}>
-        <form className="glitch-card" onSubmit={handleSubmit}>
-          <div className="card-header">
-            <div className="card-title">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                strokeWidth="1.5"
-                stroke="currentColor"
-                fill="none"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                <path d="M14 3v4a1 1 0 0 0 1 1h4"></path>
-                <path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"></path>
-                <path d="M12 11.5a3 3 0 0 0 -3 2.824v1.176a3 3 0 0 0 6 0v-1.176a3 3 0 0 0 -3 -2.824z"></path>
-              </svg>
-              <span>JUNIORHACK_7.0</span>
-            </div>
-
-            <button 
-              type="button"
-              onClick={handleClose}
-              className="close-button"
-              aria-label="Close"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                strokeWidth="2"
-                stroke="currentColor"
-                fill="none"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                <path d="M18 6l-12 12"></path>
-                <path d="M6 6l12 12"></path>
-              </svg>
-            </button>
-
-            {/* Progress Bar as underline */}
-            <div className="header-progress-bar">
-              <div 
-                className="header-progress-fill" 
-                style={{ width: `${(currentStep / totalSteps) * 100}%` }}
-              ></div>
-            </div>
-          </div>
-
-          <div className="card-body">
-            <div className="form-content">
-              <h2 className="step-title">{getStepTitle()}</h2>
-              
-              {renderStepContent()}
-            </div>
-
-            <div className="button-group">
-              {currentStep > 1 && (
-                <button
-                  type="button"
-                  onClick={prevStep}
-                  className="submit-btn secondary-btn"
-                  data-text="PREVIOUS"
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div 
+            className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+            variants={backdropVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+          >
+            <div className="glitch-form-wrapper" onClick={(e) => e.stopPropagation()}>
+              <form className="glitch-card overflow-hidden" onSubmit={handleSubmit}>
+                <motion.div 
+                  className="card-header"
+                  variants={headerVariants}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
                 >
-                  <span className="btn-text">PREVIOUS</span>
-                </button>
-              )}
-              
-              {currentStep < totalSteps ? (
-                <button
-                  type="button"
-                  onClick={nextStep}
-                  className="submit-btn"
-                  data-text="NEXT"
-                  disabled={!isCurrentStepValid()}
-                >
-                  <span className="btn-text">NEXT</span>
-                </button>
-              ) : (
-                <button 
-                  type="submit" 
-                  className="submit-btn" 
-                  data-text={isSubmitting ? "SUBMITTING..." : "SUBMIT"}
-                  disabled={!formData.agreement || isSubmitting}
-                >
-                  <span className="btn-text">{isSubmitting ? "SUBMITTING..." : "SUBMIT"}</span>
-                </button>
-              )}
+                  <div className="card-title">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      strokeWidth="1.5"
+                      stroke="currentColor"
+                      fill="none"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                      <path d="M14 3v4a1 1 0 0 0 1 1h4"></path>
+                      <path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"></path>
+                      <path d="M12 11.5a3 3 0 0 0 -3 2.824v1.176a3 3 0 0 0 6 0v-1.176a3 3 0 0 0 -3 -2.824z"></path>
+                    </svg>
+                    <span>JUNIORHACK_7.0</span>
+                  </div>
+
+                  <button 
+                    type="button"
+                    onClick={handleClose}
+                    className="close-button"
+                    aria-label="Close"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      strokeWidth="2"
+                      stroke="currentColor"
+                      fill="none"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                      <path d="M18 6l-12 12"></path>
+                      <path d="M6 6l12 12"></path>
+                    </svg>
+                  </button>
+
+                  {/* Progress Bar as underline */}
+                  <div className="header-progress-bar">
+                    <div 
+                      className="header-progress-fill" 
+                      style={{ width: `${(currentStep / totalSteps) * 100}%` }}
+                    ></div>
+                  </div>
+                </motion.div>
+
+                <AnimatePresence mode="wait">
+                  {showContent && (
+                    <motion.div 
+                      className="card-body"
+                      variants={contentVariants}
+                      initial="hidden"
+                      animate="visible"
+                      exit="exit"
+                    >
+                      <div className="form-content">
+                        <h2 className="step-title">{getStepTitle()}</h2>
+                        
+                        {renderStepContent()}
+                      </div>
+
+                      <div className="button-group">
+                        {currentStep > 1 && (
+                          <button
+                            type="button"
+                            onClick={prevStep}
+                            className="submit-btn secondary-btn"
+                            data-text="PREVIOUS"
+                          >
+                            <span className="btn-text">PREVIOUS</span>
+                          </button>
+                        )}
+                        
+                        {currentStep < totalSteps ? (
+                          <button
+                            type="button"
+                            onClick={nextStep}
+                            className="submit-btn"
+                            data-text="NEXT"
+                            disabled={!isCurrentStepValid()}
+                          >
+                            <span className="btn-text">NEXT</span>
+                          </button>
+                        ) : (
+                          <button 
+                            type="submit" 
+                            className="submit-btn" 
+                            data-text={isSubmitting ? "SUBMITTING..." : "SUBMIT"}
+                            disabled={!formData.agreement || isSubmitting}
+                          >
+                            <span className="btn-text">{isSubmitting ? "SUBMITTING..." : "SUBMIT"}</span>
+                          </button>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </form>
             </div>
-          </div>
-        </form>
-      </div>
-    </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }
