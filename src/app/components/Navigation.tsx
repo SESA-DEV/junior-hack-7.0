@@ -10,6 +10,9 @@ interface NavigationProps {
 export default function Navigation({ onRegisterClick }: NavigationProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+
+  const registrationOpen = false;
+
   const handleNavClick = (id: string) => {
     setMobileMenuOpen(false);
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
@@ -83,12 +86,15 @@ export default function Navigation({ onRegisterClick }: NavigationProps) {
           </div>
 
           {/* Desktop CTA Button */}
-          <button 
-            onClick={onRegisterClick}
-            className="hidden sm:block cyberpunk-btn"
-            data-text="REGISTER_NOW"
+          <button
+            onClick={registrationOpen ? onRegisterClick : undefined}
+            className={`hidden sm:block cyberpunk-btn ${!registrationOpen ? 'opacity-60 cursor-not-allowed' : ''}`}
+            data-text={registrationOpen ? 'REGISTER_NOW' : 'REGISTRATION_CLOSED'}
+            disabled={!registrationOpen}
+            aria-disabled={!registrationOpen}
+            title={!registrationOpen ? 'Registration is closed' : 'Register now'}
           >
-            <span className="cyberpunk-btn-text">REGISTER_NOW</span>
+            <span className="cyberpunk-btn-text">{registrationOpen ? 'REGISTER_NOW' : 'REGISTRATION_CLOSED'}</span>
           </button>
 
           {/* Mobile Menu Button */}
@@ -153,15 +159,18 @@ export default function Navigation({ onRegisterClick }: NavigationProps) {
               >
                 Contact us
               </a>
-              <button 
+              <button
                 onClick={() => {
                   setMobileMenuOpen(false);
-                  onRegisterClick();
+                  if (registrationOpen) onRegisterClick();
                 }}
-                className="cyberpunk-btn w-full mt-4"
-                data-text="REGISTER_NOW"
+                className={`cyberpunk-btn w-full mt-4 ${!registrationOpen ? 'opacity-60 cursor-not-allowed' : ''}`}
+                data-text={registrationOpen ? 'REGISTER_NOW' : 'REGISTRATION_CLOSED'}
+                disabled={!registrationOpen}
+                aria-disabled={!registrationOpen}
+                title={!registrationOpen ? 'Registration is closed' : 'Register now'}
               >
-                <span className="cyberpunk-btn-text">REGISTER_NOW</span>
+                <span className="cyberpunk-btn-text">{registrationOpen ? 'REGISTER_NOW' : 'REGISTRATION_CLOSED'}</span>
               </button>
             </div>
           </div>

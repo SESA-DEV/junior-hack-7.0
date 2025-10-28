@@ -113,12 +113,12 @@ export default function HeroSection({ onRegisterClick }: HeroSectionProps) {
             }}
             className="mt-8 sm:mt-12 md:mt-20 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 px-4"
           >
-            <button 
-              onClick={onRegisterClick}
-              className="cyberpunk-btn-large w-full sm:w-auto"
-              data-text="REGISTER_NOW"
+            <button
+              className="cyberpunk-btn-large w-full sm:w-auto opacity-60 cursor-not-allowed"
+              data-text="REGISTRATION_CLOSED"
+              disabled
             >
-              <span className="cyberpunk-btn-text">REGISTER_NOW</span>
+              <span className="cyberpunk-btn-text">REGISTRATION_CLOSED</span>
             </button>
             <button 
               onClick={() => {

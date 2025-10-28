@@ -4,6 +4,10 @@ import { appendToGoogleSheet } from '@/lib/googleSheets';
 import { sendRegistrationEmail } from '@/lib/email';
 
 export async function POST(request: NextRequest) {
+  return NextResponse.json(
+          { error: 'Registration is closed' },
+          { status: 400 }
+        );
   try {
     const body = await request.json();
     const { teamName, membersCount, leader, member1, member2, member3 } = body;
